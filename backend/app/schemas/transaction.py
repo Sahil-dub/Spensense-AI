@@ -4,7 +4,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, Field, condecimal
+from pydantic import BaseModel, ConfigDict, Field, condecimal
 
 TxType = Literal["income", "expense"]
 Bucket = Literal["necessary", "controllable", "unnecessary"]
@@ -40,9 +40,6 @@ class TransactionUpdate(BaseModel):
 
 class TransactionRead(TransactionBase):
     id: int
-
-    # ensure Decimal is serialized nicely
     amount: Decimal
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
