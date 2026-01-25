@@ -1,4 +1,4 @@
-from sqlalchemy import String, Date, Numeric, CheckConstraint
+from sqlalchemy import CheckConstraint, Date, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -14,7 +14,9 @@ class Transaction(Base):
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="EUR")
 
     category: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    bucket: Mapped[str | None] = mapped_column(String(20), nullable=True)  # necessary/controllable/unnecessary
+    bucket: Mapped[str | None] = mapped_column(
+        String(20), nullable=True
+    )  # necessary/controllable/unnecessary
 
     occurred_on: Mapped[str] = mapped_column(Date, nullable=False)
     note: Mapped[str | None] = mapped_column(String(255), nullable=True)
