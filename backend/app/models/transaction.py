@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from datetime import date
+from decimal import Decimal
+
 from sqlalchemy import CheckConstraint, Date, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -10,15 +15,13 @@ class Transaction(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
     tx_type: Mapped[str] = mapped_column(String(10), nullable=False)  # income | expense
-    amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
+    amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="EUR")
 
     category: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    bucket: Mapped[str | None] = mapped_column(
-        String(20), nullable=True
-    )  # necessary/controllable/unnecessary
+    bucket: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
-    occurred_on: Mapped[str] = mapped_column(Date, nullable=False)
+    occurred_on: Mapped[date] = mapped_column(Date, nullable=False)
     note: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     __table_args__ = (
