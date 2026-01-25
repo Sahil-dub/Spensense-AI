@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, delete, select
 from sqlalchemy.orm import Session
 
 from app.models.transaction import Transaction
@@ -32,9 +32,7 @@ def list_transactions(
     date_from: date | None = None,
     date_to: date | None = None,
 ) -> list[Transaction]:
-    stmt: Select[tuple[Transaction]] = select(Transaction).order_by(
-        Transaction.occurred_on.desc(), Transaction.id.desc()
-    )
+    stmt: Select[tuple[Transaction]] = select(Transaction).order_by(Transaction.occurred_on.desc(), Transaction.id.desc())
 
     if tx_type:
         stmt = stmt.where(Transaction.tx_type == tx_type)

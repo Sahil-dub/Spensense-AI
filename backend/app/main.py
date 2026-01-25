@@ -1,9 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.api.transactions import router as transactions_router
 from app.api.db_ping import router as db_router
 from app.api.health import router as health_router
-from app.api.transactions import router as transactions_router
 from app.core.config import settings
 from app.core.logging import setup_logging
 
