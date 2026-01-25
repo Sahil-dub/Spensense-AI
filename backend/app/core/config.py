@@ -3,9 +3,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     app_name: str = "Spendsense AI API"
-    environment: str = "local"  # local | staging | production
+    environment: str = "local"
     log_level: str = "INFO"
     cors_origins: str = "http://localhost:3000"
+
+    database_url: str  # REQUIRED
 
     model_config = SettingsConfigDict(
         env_file=".env",
