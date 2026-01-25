@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.api.transactions import router as transactions_router
 from app.api.db_ping import router as db_router
 from app.api.health import router as health_router
 from app.core.config import settings
@@ -25,6 +25,8 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(db_router)
+
+    app.include_router(transactions_router)
 
     app.include_router(health_router)
     return app
