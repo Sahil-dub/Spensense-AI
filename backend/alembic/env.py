@@ -8,6 +8,8 @@ from app.db.base import Base
 
 # Import models so Base.metadata is populated
 from app.models import transaction  # noqa: F401
+from app.models import budget  # noqa: F401
+
 
 config = context.config
 
