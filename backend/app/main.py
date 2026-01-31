@@ -7,6 +7,8 @@ from app.api.import_csv import router as import_router
 from app.api.transactions import router as transactions_router
 from app.core.config import settings
 from app.core.logging import setup_logging
+from app.api.analytics import router as analytics_router
+
 
 
 def create_app() -> FastAPI:
@@ -33,6 +35,9 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
 
     app.include_router(import_router)
+
+    app.include_router(analytics_router)
+
 
     return app
 
