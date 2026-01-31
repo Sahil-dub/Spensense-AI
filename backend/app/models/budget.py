@@ -19,6 +19,4 @@ class Budget(Base):
 
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="EUR")
 
-    __table_args__ = (
-        UniqueConstraint("category", name="uq_budgets_category"),
-    )
+    __table_args__ = (UniqueConstraint("category", name="uq_budgets_category"),)

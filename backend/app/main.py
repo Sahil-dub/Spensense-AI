@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.analytics import router as analytics_router
+from app.api.budgets import router as budgets_router
 from app.api.db_ping import router as db_router
 from app.api.health import router as health_router
 from app.api.import_csv import router as import_router
@@ -36,6 +37,8 @@ def create_app() -> FastAPI:
     app.include_router(import_router)
 
     app.include_router(analytics_router)
+
+    app.include_router(budgets_router)
 
     return app
 
