@@ -3,8 +3,7 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import func, select
-from sqlalchemy.dialects.postgresql import DATE, TEXT
+from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
 from app.models.transaction import Transaction
@@ -15,14 +14,17 @@ def _d0(x) -> Decimal:
 
 
 def get_totals(db: Session, *, date_from: date | None = None, date_to: date | None = None) -> dict:
-    stmt = select(
-        func.coalesce(func.sum(func.case((Transaction.tx_type == "income", Transaction.amount), else_=0)), 0).label(
-            "income"
-        ),
-        func.coalesce(func.sum(func.case((Transaction.tx_type == "expense", Transaction.amount), else_=0)), 0).label(
-            "expense"
-        ),
-    )
+    income_expr = func.coalesce(
+        func.sum(case((Transaction.tx_type == "income", Transaction.amount), else_=0)),
+        0,
+    ).label("income")
+
+    expense_expr = func.coalesce(
+        func.sum(case((Transaction.tx_type == "expense", Transaction.amount), else_=0)),
+        0,
+    ).label("expense")
+
+    stmt = select(income_expr, expense_expr)
 
     if date_from:
         stmt = stmt.where(Transaction.occurred_on >= date_from)
@@ -85,21 +87,27 @@ def get_by_category(
 
 
 def get_monthly(
-    db: Session, *, months: int = 12, date_from: date | None = None, date_to: date | None = None
+    db: Session,
+    *,
+    months: int = 12,
+    date_from: date | None = None,
+    date_to: date | None = None,
 ) -> list[dict]:
     # Postgres: to_char(date, 'YYYY-MM') for grouping
     month_expr = func.to_char(Transaction.occurred_on, "YYYY-MM").label("month")
 
+    income_expr = func.coalesce(
+        func.sum(case((Transaction.tx_type == "income", Transaction.amount), else_=0)),
+        0,
+    ).label("income")
+
+    expense_expr = func.coalesce(
+        func.sum(case((Transaction.tx_type == "expense", Transaction.amount), else_=0)),
+        0,
+    ).label("expense")
+
     stmt = (
-        select(
-            month_expr,
-            func.coalesce(func.sum(func.case((Transaction.tx_type == "income", Transaction.amount), else_=0)), 0).label(
-                "income"
-            ),
-            func.coalesce(func.sum(func.case((Transaction.tx_type == "expense", Transaction.amount), else_=0)), 0).label(
-                "expense"
-            ),
-        )
+        select(month_expr, income_expr, expense_expr)
         .group_by(month_expr)
         .order_by(month_expr.desc())
         .limit(months)
@@ -112,11 +120,12 @@ def get_monthly(
 
     rows = db.execute(stmt).all()
 
-    # Convert to dicts and compute net; reverse to chronological ascending
-    out = []
+    out: list[dict] = []
     for r in rows:
         income = _d0(r.income)
         expense = _d0(r.expense)
-        out.append({"month": r.month, "income": income, "expense": expense, "net": income - expense})
+        out.append(
+            {"month": r.month, "income": income, "expense": expense, "net": income - expense}
+        )
 
     return list(reversed(out))

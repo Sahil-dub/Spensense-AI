@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.crud.analytics.summary import get_by_bucket, get_by_category, get_monthly, get_totals
 from app.db.session import get_db
-from app.schemas.analytics import AnalyticsSummary, MoneyTotals
+from app.schemas.analytics import AnalyticsSummary
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
