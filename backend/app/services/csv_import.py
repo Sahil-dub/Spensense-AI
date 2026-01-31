@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import io
 from dataclasses import dataclass
-from datetime import date
 
 import pandas as pd
-import pandera as pa
+import pandera.pandas as pa
 from sqlalchemy.orm import Session
 
 from app.models.transaction import Transaction
