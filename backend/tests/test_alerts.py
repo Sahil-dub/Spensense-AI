@@ -44,5 +44,6 @@ def test_alerts_over_budget():
     data = res.json()
 
     assert "alerts" in data
-    # should include dining_out as over budget (may include other alerts depending on prior test data)
+    # should include dining_out as over budget
+    # (may include other alerts depending on prior test data)
     assert any(a["category"] == "dining_out" and float(a["over_by"]) >= 15 for a in data["alerts"])
