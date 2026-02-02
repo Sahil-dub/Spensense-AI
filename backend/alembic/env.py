@@ -10,6 +10,7 @@ from app.db.base import Base
 from app.models import (
     budget,  # noqa: F401
     transaction,  # noqa: F401
+    goal,  # noqa: F401
 )
 
 config = context.config
