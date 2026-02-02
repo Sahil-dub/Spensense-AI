@@ -5,6 +5,7 @@ from app.api.alerts import router as alerts_router
 from app.api.analytics import router as analytics_router
 from app.api.budgets import router as budgets_router
 from app.api.db_ping import router as db_router
+from app.api.goal_plan import router as goal_plan_router
 from app.api.goals import router as goals_router
 from app.api.health import router as health_router
 from app.api.import_csv import router as import_router
@@ -45,6 +46,8 @@ def create_app() -> FastAPI:
     app.include_router(alerts_router)
 
     app.include_router(goals_router)
+
+    app.include_router(goal_plan_router)
 
     return app
 
