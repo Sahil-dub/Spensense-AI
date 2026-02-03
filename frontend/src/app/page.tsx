@@ -1,4 +1,5 @@
 import { apiGet } from "@/lib/api";
+import QuickAddTransaction from "@/components/QuickAddTransaction";
 
 type AnalyticsSummary = {
   totals: {
@@ -36,6 +37,7 @@ export default async function DashboardPage() {
         </div>
       </section>
 
+      <QuickAddTransaction />
       <section className="border p-4 rounded">
         <h2 className="text-xl font-semibold mb-2">Alerts</h2>
         {alerts.alerts.length === 0 ? (
