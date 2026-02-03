@@ -8,6 +8,7 @@ import {
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
 
 type Row = {
@@ -18,7 +19,6 @@ type Row = {
 };
 
 export default function MonthlyChart({ data }: { data: Row[] }) {
-  // Convert string numbers -> Number for charts
   const rows = data.map((r) => ({
     month: r.month,
     income: Number(r.income),
@@ -29,16 +29,25 @@ export default function MonthlyChart({ data }: { data: Row[] }) {
   return (
     <section className="border p-4 rounded space-y-3">
       <h2 className="text-xl font-semibold">Monthly trend</h2>
+
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={rows}>
+          <LineChart data={rows} margin={{ top: 10, right: 20, left: 0, bottom: 30 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
+            <XAxis
+              dataKey="month"
+              interval="preserveStartEnd"
+              tickMargin={8}
+              angle={-35}
+              textAnchor="end"
+            />
             <YAxis />
             <Tooltip />
-            <Line type="monotone" dataKey="income" />
-            <Line type="monotone" dataKey="expense" />
-            <Line type="monotone" dataKey="net" />
+            <Legend />
+
+            <Line type="monotone" dataKey="income" stroke="#16a34a" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="expense" stroke="#dc2626" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="net" stroke="#2563eb" strokeWidth={2} dot={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
