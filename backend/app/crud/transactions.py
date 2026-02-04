@@ -7,10 +7,18 @@ from sqlalchemy.orm import Session
 
 from app.models.transaction import Transaction
 from app.schemas.transaction import TransactionCreate, TransactionUpdate
+from app.services.bucket_classifier import infer_bucket
 
 
 def create_transaction(db: Session, payload: TransactionCreate) -> Transaction:
-    tx = Transaction(**payload.model_dump())
+    data = payload.model_dump()
+
+    if data.get("tx_type") == "expense" and not data.get("bucket"):
+        guessed = infer_bucket(category=data.get("category"), note=data.get("note"))
+        if guessed:
+            data["bucket"] = guessed
+
+    tx = Transaction(**data)
     db.add(tx)
     db.commit()
     db.refresh(tx)
@@ -54,8 +62,14 @@ def list_transactions(
 
 def update_transaction(db: Session, tx: Transaction, payload: TransactionUpdate) -> Transaction:
     data = payload.model_dump(exclude_unset=True)
+
+    # - We intentionally do NOT auto-assign bucket during updates.
+    # - If the client explicitly sends bucket=None, we allow clearing it.
+    # - If the client doesn't send bucket at all, we leave it unchanged.
+
     for k, v in data.items():
         setattr(tx, k, v)
+
     db.add(tx)
     db.commit()
     db.refresh(tx)

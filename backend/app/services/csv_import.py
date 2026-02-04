@@ -8,6 +8,7 @@ import pandera.pandas as pa
 from sqlalchemy.orm import Session
 
 from app.models.transaction import Transaction
+from app.services.bucket_classifier import infer_bucket
 from app.services.csv_schema import TRANSACTION_CSV_SCHEMA
 
 
@@ -52,9 +53,10 @@ def import_transactions_csv(db: Session, file_bytes: bytes) -> ImportResult:
     # Validate with pandera
     try:
         validated = TRANSACTION_CSV_SCHEMA.validate(df, lazy=True)
+        rejected: list[RejectRow] = []
     except pa.errors.SchemaErrors as e:
         # Build rejected rows with reasons using failure_cases
-        rejected: list[RejectRow] = []
+        rejected = []
         failure_cases = e.failure_cases
 
         # failure_cases contains row indices in "index"; these are 0-based data rows (not header)
@@ -67,14 +69,13 @@ def import_transactions_csv(db: Session, file_bytes: bytes) -> ImportResult:
             rejected.append(RejectRow(row_number=idx + 1, reason=reason))
 
         # If validation fails, we can still try to insert the valid rows:
-        # Get rows that passed by filtering out failed indices.
         failed_indices = set(int(i) for i in failure_cases["index"].dropna().unique())
         valid_df = df.drop(index=list(failed_indices), errors="ignore")
 
         if valid_df.empty:
             # Deduplicate reasons per row_number (keep first)
             seen = set()
-            uniq = []
+            uniq: list[RejectRow] = []
             for r in rejected:
                 if r.row_number not in seen:
                     seen.add(r.row_number)
@@ -92,8 +93,6 @@ def import_transactions_csv(db: Session, file_bytes: bytes) -> ImportResult:
                 seen.add(r.row_number)
                 uniq.append(r)
         rejected = uniq
-    else:
-        rejected = []
 
     # Convert occurred_on to date
     validated["occurred_on"] = pd.to_datetime(validated["occurred_on"]).dt.date
@@ -101,15 +100,30 @@ def import_transactions_csv(db: Session, file_bytes: bytes) -> ImportResult:
     # Create SQLAlchemy objects
     txs: list[Transaction] = []
     for _, r in validated.iterrows():
+        tx_type = str(r["tx_type"])
+        amount = r["amount"]
+        currency = str(r["currency"])[:3].upper() if r["currency"] else "EUR"
+
+        cat = str(r["category"])[:50] if pd.notna(r["category"]) else None
+        note = str(r["note"])[:255] if pd.notna(r["note"]) else None
+
+        # Use provided bucket if present; otherwise infer for expenses
+        if pd.notna(r["bucket"]):
+            bucket_val = str(r["bucket"])[:20]
+        else:
+            bucket_val = None
+            if tx_type == "expense":
+                bucket_val = infer_bucket(category=cat, note=note)
+
         txs.append(
             Transaction(
-                tx_type=str(r["tx_type"]),
-                amount=r["amount"],  # SQLAlchemy Numeric will convert
-                currency=str(r["currency"])[:3].upper() if r["currency"] else "EUR",
-                category=(str(r["category"])[:50] if pd.notna(r["category"]) else None),
-                bucket=(str(r["bucket"])[:20] if pd.notna(r["bucket"]) else None),
+                tx_type=tx_type,
+                amount=amount,  # SQLAlchemy Numeric will convert
+                currency=currency,
+                category=cat,
+                bucket=bucket_val,
                 occurred_on=r["occurred_on"],  # already date
-                note=(str(r["note"])[:255] if pd.notna(r["note"]) else None),
+                note=note,
             )
         )
 
