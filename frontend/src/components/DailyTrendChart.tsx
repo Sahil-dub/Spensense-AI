@@ -20,39 +20,71 @@ type Point = {
   net: string;
 };
 
+type Mode = "expense" | "balance";
+
 function eur(n: number) {
   if (!Number.isFinite(n)) return "€0";
   return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
 }
 
 function formatDateLabel(iso: string) {
-  // "YYYY-MM-DD" -> "DD.MM"
   const [y, m, d] = iso.split("-");
-  return `${d}.${m}`;
+  return `${d}.${m}`; // DD.MM
 }
 
-function CustomTooltip({ active, payload, label, showSavings }: any) {
+function CustomTooltip({ active, payload, label, mode }: any) {
   if (!active || !payload?.length) return null;
-
   const v = Number(payload[0]?.value ?? 0);
+
   return (
     <div className="rounded border p-3 text-sm bg-white text-black border-zinc-300 dark:bg-zinc-900 dark:text-white dark:border-zinc-700">
       <div className="font-semibold mb-1">{label}</div>
-      <div>{showSavings ? `Savings: ${eur(v)}` : `Expense: ${eur(v)}`}</div>
+      <div>{mode === "balance" ? `Savings balance: ${eur(v)}` : `Expense: ${eur(v)}`}</div>
     </div>
   );
 }
 
-export default function DailyTrendChart() {
-  const [fromDate, setFromDate] = useState<string>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 30);
-    return d.toISOString().slice(0, 10);
-  });
-  const [toDate, setToDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+function SegmentedToggle({ mode, setMode }: { mode: Mode; setMode: (m: Mode) => void }) {
+  return (
+    <div className="inline-flex rounded-full border overflow-hidden bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700">
+      <button
+        type="button"
+        onClick={() => setMode("expense")}
+        className={[
+          "px-3 py-2 text-sm transition",
+          mode === "expense"
+            ? "bg-black text-white dark:bg-white dark:text-black"
+            : "text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800",
+        ].join(" ")}
+      >
+        💸 Spend spikes
+      </button>
+      <button
+        type="button"
+        onClick={() => setMode("balance")}
+        className={[
+          "px-3 py-2 text-sm transition",
+          mode === "balance"
+            ? "bg-black text-white dark:bg-white dark:text-black"
+            : "text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800",
+        ].join(" ")}
+      >
+        🏦 Savings balance
+      </button>
+    </div>
+  );
+}
 
-  const [showSavings, setShowSavings] = useState(false);
-
+export default function DailyTrendChart({
+  fromDate,
+  toDate,
+  onChangeRange,
+}: {
+  fromDate: string;
+  toDate: string;
+  onChangeRange: (next: { fromDate: string; toDate: string }) => void;
+}) {
+  const [mode, setMode] = useState<Mode>("expense");
   const [points, setPoints] = useState<Point[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
@@ -76,47 +108,51 @@ export default function DailyTrendChart() {
   }, [fromDate, toDate]);
 
   const rows = useMemo(() => {
-    return points.map((p) => ({
-      date: p.date,
-      expense: Number(p.expense),
-      savings: Number(p.net), // net = savings in this view
-    }));
+    let running = 0;
+
+    return points.map((p) => {
+      const expense = Number(p.expense);
+      const net = Number(p.net);
+
+      running = running + (Number.isFinite(net) ? net : 0);
+
+      return {
+        date: p.date,
+        expense: Number.isFinite(expense) ? expense : 0,
+        balance: Number.isFinite(running) ? running : 0,
+      };
+    });
   }, [points]);
 
   return (
     <section className="border p-4 rounded space-y-4">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <h2 className="text-xl font-semibold">Daily trend</h2>
-
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showSavings}
-            onChange={(e) => setShowSavings(e.target.checked)}
-          />
-          Show savings (net)
-        </label>
+        <h2 className="text-xl font-semibold">Daily insight</h2>
+        <SegmentedToggle mode={mode} setMode={setMode} />
       </div>
 
+      {/* Range lives here, but state is controlled by parent so pies can match */}
       <div className="flex flex-col md:flex-row md:items-end gap-3 text-sm">
         <div className="flex flex-col">
           <span className="text-gray-500 dark:text-zinc-300 mb-1">From date</span>
           <input
             type="date"
             value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
+            onChange={(e) => onChangeRange({ fromDate: e.target.value, toDate })}
             className="border rounded p-2 bg-white text-black border-zinc-300 dark:bg-zinc-900 dark:text-white dark:border-zinc-700"
           />
         </div>
+
         <div className="flex flex-col">
           <span className="text-gray-500 dark:text-zinc-300 mb-1">To date</span>
           <input
             type="date"
             value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
+            onChange={(e) => onChangeRange({ fromDate, toDate: e.target.value })}
             className="border rounded p-2 bg-white text-black border-zinc-300 dark:bg-zinc-900 dark:text-white dark:border-zinc-700"
           />
         </div>
+
         <button
           className="px-3 py-2 rounded border h-[42px]"
           type="button"
@@ -125,8 +161,7 @@ export default function DailyTrendChart() {
             const to = d.toISOString().slice(0, 10);
             d.setDate(d.getDate() - 30);
             const from = d.toISOString().slice(0, 10);
-            setFromDate(from);
-            setToDate(to);
+            onChangeRange({ fromDate: from, toDate: to });
           }}
         >
           Last 30 days
@@ -149,9 +184,9 @@ export default function DailyTrendChart() {
               tickMargin={10}
             />
             <YAxis />
-            <Tooltip content={(p) => <CustomTooltip {...p} showSavings={showSavings} />} />
+            <Tooltip content={(p) => <CustomTooltip {...p} mode={mode} />} />
 
-            {!showSavings ? (
+            {mode === "expense" ? (
               <Line
                 type="monotone"
                 dataKey="expense"
@@ -165,7 +200,7 @@ export default function DailyTrendChart() {
             ) : (
               <Line
                 type="monotone"
-                dataKey="savings"
+                dataKey="balance"
                 stroke="#2563eb"
                 strokeWidth={2}
                 dot={false}
