@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
 from app.models.transaction import Transaction
@@ -15,13 +15,11 @@ def get_daily_series(db: Session, *, date_from: date, date_to: date) -> list[dic
         select(
             Transaction.occurred_on.label("d"),
             func.coalesce(
-                func.sum(func.case((Transaction.tx_type == "income", Transaction.amount), else_=0)),
+                func.sum(case((Transaction.tx_type == "income", Transaction.amount), else_=0)),
                 0,
             ).label("income"),
             func.coalesce(
-                func.sum(
-                    func.case((Transaction.tx_type == "expense", Transaction.amount), else_=0)
-                ),
+                func.sum(case((Transaction.tx_type == "expense", Transaction.amount), else_=0)),
                 0,
             ).label("expense"),
         )
