@@ -6,6 +6,7 @@ import TransactionsTable from "@/components/TransactionsTable";
 import MonthlyChart from "@/components/MonthlyChart";
 import CategoryPie from "@/components/CategoryPie";
 import { httpGet } from "@/lib/http";
+import ThemeToggle from "./ThemeToggle";
 
 type Analytics = {
   totals: { income: string; expense: string; net: string };
@@ -92,6 +93,7 @@ export default function DashboardClient() {
         <h1 className="text-3xl font-bold">SpendSense AI</h1>
 
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <label className="text-sm text-gray-500">Range</label>
           <select
             className="border rounded p-2"
