@@ -25,6 +25,11 @@ function eur(n: number) {
   return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
 }
 
+function monthToIndex(rows: { month: string }[], m: string | null) {
+  if (!m) return -1;
+  return rows.findIndex((r) => r.month === m);
+}
+
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
 
@@ -34,8 +39,10 @@ function CustomTooltip({ active, payload, label }: any) {
   }
 
   return (
-    <div className="rounded border p-3 text-sm bg-white text-black border-zinc-300
-                    dark:bg-zinc-900 dark:text-white dark:border-zinc-700">
+    <div
+      className="rounded border p-3 text-sm bg-white text-black border-zinc-300
+                 dark:bg-zinc-900 dark:text-white dark:border-zinc-700"
+    >
       <div className="font-semibold mb-1">{label}</div>
       <div className="flex flex-col gap-1">
         <div>Income: {eur(map.get("income") ?? 0)}</div>
@@ -59,12 +66,33 @@ export default function MonthlyChart({ data }: { data: Row[] }) {
   );
 
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-  const selected = rows.find((r) => r.month === selectedMonth) ?? null;
 
   // Optional line toggles
   const [showIncome, setShowIncome] = useState(true);
   const [showExpense, setShowExpense] = useState(true);
   const [showNet, setShowNet] = useState(true);
+
+  // Custom range selection (month-based)
+  const [rangeFrom, setRangeFrom] = useState<string>("");
+  const [rangeTo, setRangeTo] = useState<string>("");
+
+  const filteredRows = useMemo(() => {
+    if (!rangeFrom && !rangeTo) return rows;
+    if (rows.length === 0) return rows;
+
+    const fromIdx = rangeFrom ? monthToIndex(rows, rangeFrom) : 0;
+    const toIdx = rangeTo ? monthToIndex(rows, rangeTo) : rows.length - 1;
+
+    // If user selected a month that doesn't exist, fall back to full series
+    if (fromIdx === -1 || toIdx === -1) return rows;
+
+    const start = Math.min(fromIdx, toIdx);
+    const end = Math.max(fromIdx, toIdx);
+
+    return rows.slice(start, end + 1);
+  }, [rows, rangeFrom, rangeTo]);
+
+  const selected = filteredRows.find((r) => r.month === selectedMonth) ?? null;
 
   return (
     <section className="border p-4 rounded space-y-4">
@@ -73,11 +101,19 @@ export default function MonthlyChart({ data }: { data: Row[] }) {
 
         <div className="flex flex-wrap gap-3 text-sm">
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={showIncome} onChange={(e) => setShowIncome(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={showIncome}
+              onChange={(e) => setShowIncome(e.target.checked)}
+            />
             Income
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={showExpense} onChange={(e) => setShowExpense(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={showExpense}
+              onChange={(e) => setShowExpense(e.target.checked)}
+            />
             Expense
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
@@ -87,10 +123,65 @@ export default function MonthlyChart({ data }: { data: Row[] }) {
         </div>
       </div>
 
+      {/* Custom range selector */}
+      <div className="flex flex-col md:flex-row md:items-center gap-3 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-gray-500 dark:text-zinc-300">From</span>
+          <select
+            className="border rounded p-2 bg-white text-black border-zinc-300
+                       dark:bg-zinc-900 dark:text-white dark:border-zinc-700"
+            value={rangeFrom}
+            onChange={(e) => {
+              setRangeFrom(e.target.value);
+              setSelectedMonth(null);
+            }}
+          >
+            <option value="">(start)</option>
+            {rows.map((r) => (
+              <option key={r.month} value={r.month}>
+                {r.month}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-gray-500 dark:text-zinc-300">To</span>
+          <select
+            className="border rounded p-2 bg-white text-black border-zinc-300
+                       dark:bg-zinc-900 dark:text-white dark:border-zinc-700"
+            value={rangeTo}
+            onChange={(e) => {
+              setRangeTo(e.target.value);
+              setSelectedMonth(null);
+            }}
+          >
+            <option value="">(end)</option>
+            {rows.map((r) => (
+              <option key={r.month} value={r.month}>
+                {r.month}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          className="px-3 py-2 rounded border"
+          type="button"
+          onClick={() => {
+            setRangeFrom("");
+            setRangeTo("");
+            setSelectedMonth(null);
+          }}
+        >
+          Clear range
+        </button>
+      </div>
+
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={rows}
+            data={filteredRows}
             margin={{ top: 10, right: 20, left: 0, bottom: 40 }}
             onClick={(state: any) => {
               const label = state?.activeLabel;
@@ -98,19 +189,17 @@ export default function MonthlyChart({ data }: { data: Row[] }) {
             }}
           >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="month"
-              interval="preserveStartEnd"
-              tickMargin={10}
-              angle={-35}
-              textAnchor="end"
-            />
+            <XAxis dataKey="month" interval="preserveStartEnd" tickMargin={10} angle={-35} textAnchor="end" />
             <YAxis tickFormatter={(v) => `${v}`} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
 
-            {showIncome && <Line type="monotone" dataKey="income" stroke="#16a34a" strokeWidth={2} dot={false} />}
-            {showExpense && <Line type="monotone" dataKey="expense" stroke="#dc2626" strokeWidth={2} dot={false} />}
+            {showIncome && (
+              <Line type="monotone" dataKey="income" stroke="#16a34a" strokeWidth={2} dot={false} />
+            )}
+            {showExpense && (
+              <Line type="monotone" dataKey="expense" stroke="#dc2626" strokeWidth={2} dot={false} />
+            )}
             {showNet && <Line type="monotone" dataKey="net" stroke="#2563eb" strokeWidth={2} dot={false} />}
 
             {/* Drag to zoom */}
@@ -120,18 +209,16 @@ export default function MonthlyChart({ data }: { data: Row[] }) {
       </div>
 
       {/* Selected month summary */}
-      <div className="rounded border p-3 text-sm bg-white text-black border-zinc-300
-                      dark:bg-zinc-900 dark:text-white dark:border-zinc-700">
+      <div
+        className="rounded border p-3 text-sm bg-white text-black border-zinc-300
+                   dark:bg-zinc-900 dark:text-white dark:border-zinc-700"
+      >
         <div className="flex items-center justify-between gap-3">
           <div className="font-semibold">
             {selected ? `Selected: ${selected.month}` : "Click a month to inspect"}
           </div>
           {selected ? (
-            <button
-              className="px-3 py-1 rounded border"
-              onClick={() => setSelectedMonth(null)}
-              type="button"
-            >
+            <button className="px-3 py-1 rounded border" onClick={() => setSelectedMonth(null)} type="button">
               Clear
             </button>
           ) : null}

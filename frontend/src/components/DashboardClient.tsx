@@ -7,6 +7,8 @@ import MonthlyChart from "@/components/MonthlyChart";
 import CategoryPie from "@/components/CategoryPie";
 import { httpGet } from "@/lib/http";
 import ThemeToggle from "./ThemeToggle";
+import DailyTrendChart from "@/components/DailyTrendChart";
+
 
 type Analytics = {
   totals: { income: string; expense: string; net: string };
@@ -129,7 +131,7 @@ export default function DashboardClient() {
 
       <QuickAddTransaction onCreated={load} />
 
-      <MonthlyChart data={analytics.monthly} />
+      <DailyTrendChart />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <CategoryPie title="Income by category" data={incomePie} />
