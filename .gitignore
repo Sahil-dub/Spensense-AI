@@ -27,3 +27,7 @@ venv/
 # IDE
 .vscode/
 .idea/
+
+
+backend/.env
+frontend/.en.local
