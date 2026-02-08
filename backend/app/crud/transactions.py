@@ -13,6 +13,7 @@ from app.services.bucket_classifier import infer_bucket
 def create_transaction(db: Session, payload: TransactionCreate) -> Transaction:
     data = payload.model_dump()
 
+    # Auto-bucket only for expenses if bucket missing
     if data.get("tx_type") == "expense" and not data.get("bucket"):
         guessed = infer_bucket(category=data.get("category"), note=data.get("note"))
         if guessed:
@@ -26,6 +27,7 @@ def create_transaction(db: Session, payload: TransactionCreate) -> Transaction:
 
 
 def get_transaction(db: Session, tx_id: int) -> Transaction | None:
+    """Return a single transaction by primary key."""
     return db.get(Transaction, tx_id)
 
 
@@ -40,6 +42,7 @@ def list_transactions(
     date_from: date | None = None,
     date_to: date | None = None,
 ) -> list[Transaction]:
+    """List transactions with optional filters + pagination."""
     stmt: Select[tuple[Transaction]] = select(Transaction).order_by(
         Transaction.occurred_on.desc(),
         Transaction.id.desc(),
@@ -63,10 +66,7 @@ def list_transactions(
 def update_transaction(db: Session, tx: Transaction, payload: TransactionUpdate) -> Transaction:
     data = payload.model_dump(exclude_unset=True)
 
-    # - We intentionally do NOT auto-assign bucket during updates.
-    # - If the client explicitly sends bucket=None, we allow clearing it.
-    # - If the client doesn't send bucket at all, we leave it unchanged.
-
+    # Intentionally NOT auto-assign bucket during updates.
     for k, v in data.items():
         setattr(tx, k, v)
 
