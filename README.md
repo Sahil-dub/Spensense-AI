@@ -1,188 +1,267 @@
-# Spensense AI 💸📊
+# Spensense AI
 
-Spensense AI is a full-stack expense tracking and financial insights platform built as a **portfolio-grade project** by a Master's student in Data Science.
+**Full-stack personal finance analytics platform for tracking transactions, understanding spending behavior, and planning savings goals.**
 
-The project focuses on making personal finances **visible, structured, and actionable** through clean backend design, interactive analytics, and intelligent categorization.
+Built with **FastAPI, PostgreSQL, Next.js, TypeScript, Recharts, Docker, and Python**.
 
----
+> **Note:** Despite the project name, the current intelligence layer is rule-based. ML classification, prediction, and anomaly detection are planned extensions rather than implemented features.
 
-## 📋 Table of Contents
+## Project at a glance
 
-- [What Problem Does It Solve?](#what-problem-does-it-solve)
-- [Features](#features)
-- [Intelligence Layer](#intelligence-layer)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Local Development](#local-development)
-- [Environment Variables](#environment-variables)
-- [Testing & Code Quality](#testing--code-quality)
-- [Roadmap](#roadmap)
-- [Author](#author)
-- [License](#license)
+| Area | Implementation |
+|---|---|
+| Transaction management | Income, expenses, editing, deletion |
+| Data ingestion | CSV import |
+| Financial analytics | Spending, savings, categories, trends |
+| Expense intelligence | Rule-based Necessary / Controllable / Unnecessary classification |
+| Planning | Savings goals + feasibility estimation |
+| Backend | FastAPI + SQLAlchemy |
+| Database | PostgreSQL |
+| Frontend | Next.js + React + TypeScript |
+| Visualization | Recharts |
+| Migrations | Alembic |
+| Testing | pytest |
+| Infrastructure | Docker Compose |
 
----
+## What it does
 
-## 🎯 What Problem Does It Solve?
+Spensense turns transaction data into a structured financial analytics workflow.
 
-Many people don't clearly understand:
-- Where their money goes
-- Which expenses are necessary vs controllable
-- How much they are actually saving over time
+A user can:
 
-Spensense AI helps users **track**, **analyze**, and **reflect** on their financial behavior using data-driven insights.
+- Record and manage income and expenses.
+- Import transactions from CSV files.
+- Categorize spending.
+- Classify expenses into **Necessary, Controllable, or Unnecessary** buckets.
+- Analyze spending over a selected date range.
+- Track savings as a running balance.
+- Identify daily spending spikes.
+- Compare expense and savings views.
+- Monitor category-level spending.
+- Set spending thresholds and receive alerts.
+- Create savings goals and estimate whether they are feasible from historical spending.
 
----
+## Why this project is interesting
 
-## ✨ Features
+This is not just a CRUD expense tracker. It combines:
 
-### Core Functionality
-- Add, edit, and delete income and expense transactions
-- CSV import for bulk transaction uploads
-- Predefined categories with a custom "Other" option
-- Automatic expense bucket classification:
-  - Necessary
-  - Controllable
-  - Unnecessary
+**transaction data → backend business logic → PostgreSQL → analytics APIs → interactive dashboard → financial planning**
 
-### Analytics & Visualization
-- Daily expense spike chart
-- Savings running-balance chart
-- Toggle between Expense view and Savings view
-- Shared date-range selector across all charts
-- Category-wise income and expense pie charts
-- Alerts when spending exceeds thresholds
+The project demonstrates the kind of full-stack data workflow useful for Data Analyst, BI, Data Engineering, and backend-oriented roles.
 
-### Goals & Planning
-- Savings goal planner
-- Feasibility estimation based on past spending
-- Suggested timelines and required monthly savings
+## Architecture
 
-### User Experience
-- Dark / light theme toggle
-- Interactive charts with tooltips, zoom, and animations
-- Responsive dashboard layout
+```mermaid
+flowchart LR
+    A["CSV / User Transactions"] --> B["Next.js Dashboard"]
+    B --> C["FastAPI API"]
+    C --> D["Business Logic"]
+    D --> E["PostgreSQL"]
+    D --> F["Financial Analytics"]
+    F --> B
+```
 
----
+## Analytics & intelligence
 
-## 🧠 Intelligence Layer
+### Spending analytics
 
-- Rule-based expense bucket inference
-- Architecture designed to be extended with:
-  - Machine learning classification
-  - Spending prediction
-  - Anomaly detection
+- Daily expense trend and spike detection.
+- Running savings balance.
+- Expense vs savings views.
+- Category-level income and expense analysis.
+- Configurable spending thresholds.
 
----
+### Expense classification
 
-## 🛠️ Tech Stack
+The current system applies rule-based logic to classify expenses into:
+
+- **Necessary**
+- **Controllable**
+- **Unnecessary**
+
+The architecture is intentionally separated so that a future ML classifier can replace or complement the current rules.
+
+### Savings planning
+
+Users can define a savings target and receive:
+
+- Required monthly savings.
+- Estimated timeline.
+- Feasibility based on historical spending behavior.
+
+## Backend engineering
+
+The FastAPI backend is structured into separate layers for:
+
+- API routes
+- Pydantic schemas
+- SQLAlchemy models
+- CRUD/database operations
+- Business services
+- Configuration and logging
+- Database migrations
+
+The API provides the application boundary between the dashboard and PostgreSQL while keeping financial calculations and business rules in backend services.
+
+Swagger documentation is available locally at:
+
+```text
+http://localhost:8000/docs
+```
+
+## Frontend
+
+The dashboard uses:
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Recharts
+- next-themes
+
+The UI supports:
+
+- Interactive charts and tooltips.
+- Date-range filtering.
+- Expense/savings switching.
+- Dark/light themes.
+- Responsive layouts.
+
+## Data flow
+
+```text
+User transaction / CSV
+        ↓
+    FastAPI API
+        ↓
+Validation + business logic
+        ↓
+    PostgreSQL
+        ↓
+Financial analytics services
+        ↓
+    JSON responses
+        ↓
+ Next.js dashboard
+```
+
+## Tech stack
 
 ### Backend
 - Python 3.11
 - FastAPI
 - SQLAlchemy
 - PostgreSQL
-- Alembic (migrations)
-- pytest, ruff, black
+- Alembic
+- Pydantic
+- pytest
+- Ruff
+- Black
 
 ### Frontend
-- Next.js (React)
+- Next.js 14
+- React 18
 - TypeScript
 - Tailwind CSS
 - Recharts
 - next-themes
 
-### Development & Tooling
-- Docker & Docker Compose
-- Git with clean commit history
+### Infrastructure
+- Docker
+- Docker Compose
 
----
+## Repository structure
 
-## 📁 Project Structure
-
-```
+```text
 Spensense-AI/
-│
 ├── backend/
 │   ├── app/
 │   │   ├── api/          # API routes
 │   │   ├── crud/         # Database operations
 │   │   ├── models/       # SQLAlchemy models
 │   │   ├── schemas/      # Pydantic schemas
-│   │   ├── services/     # Business logic
-│   │   └── core/         # Configuration & logging
-│   ├── tests/
+│   │   ├── services/     # Business logic and analytics
+│   │   └── core/         # Configuration and logging
+│   ├── tests/            # Backend tests
 │   ├── Dockerfile
 │   └── .env.example
-│
 ├── frontend/
-│   ├── src/components/   # Dashboard and charts
+│   ├── src/components/   # Dashboard and visualization components
 │   ├── Dockerfile
 │   └── .env.local.example
-│
 ├── docker-compose.yml
 └── README.md
 ```
 
----
+## Run locally
 
-## 🚀 Local Development
+### Docker — recommended
 
-### Docker (Recommended)
+Requirements:
 
-**Requirements:**
-- Docker Desktop (Windows / Mac) or Docker Engine (Linux)
+- Docker Desktop / Docker Engine
 
-**Start the full stack:**
+Start the complete stack:
+
 ```bash
 docker compose up --build
 ```
 
-**Open in browser:**
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- Swagger Docs: http://localhost:8000/docs
+Open:
 
-**Stop containers:**
+```text
+Frontend:    http://localhost:3000
+Backend API: http://localhost:8000
+Swagger:     http://localhost:8000/docs
+```
+
+Stop:
+
 ```bash
 docker compose down
 ```
 
-**Reset database:**
+Reset the database:
+
 ```bash
 docker compose down -v
 ```
 
-### Manual Setup (Without Docker)
+### Manual setup
 
-**Requirements:**
+Requirements:
+
 - Python 3.11+
 - Node.js 22+
 - PostgreSQL 16+
 
-**Backend:**
+Backend:
+
 ```bash
 cd backend
 python -m venv .venv
-.venv\Scripts\activate  # On Windows
-# source .venv/bin/activate  # On Linux/Mac
+.venv\\Scripts\\activate
 pip install -U pip
-pip install .
+pip install -r requirements.txt
 alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
-**Frontend:**
+Frontend:
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
----
+## Environment variables
 
-## 🔐 Environment Variables
+### Backend
 
-### Backend (`backend/.env.example`)
+Create `backend/.env` from `backend/.env.example`:
+
 ```env
 APP_NAME=Spensense AI API
 ENVIRONMENT=local
@@ -191,53 +270,64 @@ CORS_ORIGINS=http://localhost:3000
 DATABASE_URL=postgresql+psycopg://spendsense:spendsense@localhost:5432/spendsense
 ```
 
-### Frontend (`frontend/.env.local.example`)
+### Frontend
+
+Create `frontend/.env.local` from `frontend/.env.local.example`:
+
 ```env
 NEXT_PUBLIC_API_BASE=http://localhost:8000
 ```
 
-> **Note:** Local `.env` files are intentionally git-ignored.
+Local environment files are intentionally git-ignored.
 
----
+## Testing & code quality
 
-## 🧪 Testing & Code Quality
+Backend tests:
 
-**Run backend tests:**
 ```bash
 cd backend
 pytest -q
 ```
 
-**Lint and format:**
+Lint:
+
 ```bash
 ruff check .
+```
+
+Format:
+
+```bash
 black .
 ```
 
----
+The backend is configured with Ruff rules covering common Python errors, imports, and bug-prone patterns.
 
-## 🗺️ Roadmap
+## Roadmap
 
-- [ ] Authentication (JWT)
+The next engineering extensions are:
+
+- [ ] JWT authentication
 - [ ] Multi-user support
-- [ ] Multi-currency support
+- [ ] Multi-currency transactions
 - [ ] ML-based expense classification
-- [ ] CI/CD with GitHub Actions
+- [ ] Spending prediction
+- [ ] Anomaly detection
+- [ ] CI/CD automation
 - [ ] Free cloud deployment
 
----
+The roadmap is intentionally separate from the current feature set so implemented functionality is not confused with planned work.
 
-## 👨‍💻 Author
+## Project positioning
+
+Spensense demonstrates a broader workflow than a typical beginner dashboard:
+
+**Full-stack application → relational data → APIs → financial business logic → analytics → visualization**
+
+It is particularly useful as a portfolio example for roles involving **Python, SQL, APIs, PostgreSQL, analytics, and data-driven application development**.
+
+## Author
 
 **Sahil Dubey**  
-Master's Student in Data Science (Germany)
+M.Sc. Data Science student in Germany
 
-This project was built to showcase practical backend engineering, data-driven thinking, and production-ready system design.
-
----
-
-## 📄 License
-
-Copyright (c) 2026 Sahil Dubey
-
----
