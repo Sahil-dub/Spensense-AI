@@ -6,6 +6,8 @@ Built with **FastAPI, PostgreSQL, Next.js, TypeScript, Recharts, Docker, and Pyt
 
 > **Note:** Despite the project name, the current intelligence layer is rule-based. ML classification, prediction, and anomaly detection are planned extensions rather than implemented features.
 
+> **Live recruiter demo:** GitHub Pages static showcase with representative dashboard data. The production application remains the FastAPI + PostgreSQL + Next.js stack described below.
+
 ## Project at a glance
 
 | Area | Implementation |
