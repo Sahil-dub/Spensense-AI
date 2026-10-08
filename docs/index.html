@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spensense AI — Financial Analytics Demo</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="mark">S</span><div><strong>Spensense</strong><small>Financial Analytics</small></div></div>
+  <div class="top-actions"><span class="status"><i></i> Demo data</span><a href="https://github.com/Sahil-dub/Spensense-AI" target="_blank">View source ↗</a></div>
+</header>
+<main>
+<section class="hero">
+  <div><p class="eyebrow">RECRUITER DEMO</p><h1>Turn transactions into decisions.</h1><p class="lead">A full-stack finance analytics workflow combining transaction data, business rules, PostgreSQL-backed APIs and an interactive dashboard.</p></div>
+  <div class="stack"><span>FastAPI</span><span>PostgreSQL</span><span>Next.js</span><span>TypeScript</span><span>Docker</span></div>
+</section>
+
+<section class="cards">
+  <article class="metric"><span>Total income</span><strong>€3,420</strong><em>Selected period</em></article>
+  <article class="metric"><span>Total expenses</span><strong>€2,186</strong><em>64.0% of income</em></article>
+  <article class="metric"><span>Net savings</span><strong>€1,234</strong><em>+8.4% vs prior period</em></article>
+  <article class="metric"><span>Transactions</span><strong>128</strong><em>CSV + API ingestion</em></article>
+</section>
+
+<section class="grid two">
+  <article class="panel chart-panel">
+    <div class="panel-head"><div><h2>Cash-flow trend</h2><p>Illustrative dashboard data</p></div><select id="range"><option>Last 30 days</option><option>Last 90 days</option></select></div>
+    <div class="chart"><div class="ylabels"><span>€300</span><span>€200</span><span>€100</span><span>€0</span></div><svg viewBox="0 0 700 250" preserveAspectRatio="none" aria-label="Cash flow chart">
+      <defs><linearGradient id="area" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".22"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>
+      <path class="area" d="M0 184 L60 160 L120 172 L180 125 L240 144 L300 104 L360 128 L420 92 L480 115 L540 76 L600 98 L660 58 L700 68 L700 250 L0 250 Z"/>
+      <path class="line" d="M0 184 L60 160 L120 172 L180 125 L240 144 L300 104 L360 128 L420 92 L480 115 L540 76 L600 98 L660 58 L700 68"/>
+    </svg></div>
+    <div class="legend"><span><i class="dot"></i>Income</span><span><i class="dot expense"></i>Expenses</span><span class="insight">↗ Savings improving</span></div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-head"><div><h2>Spending by category</h2><p>Where money is going</p></div></div>
+    <div class="bars">
+      <div><label>Housing <b>€760</b></label><span><i style="width:88%"></i></span></div>
+      <div><label>Food <b>€412</b></label><span><i style="width:48%"></i></span></div>
+      <div><label>Transport <b>€286</b></label><span><i style="width:33%"></i></span></div>
+      <div><label>Shopping <b>€238</b></label><span><i style="width:28%"></i></span></div>
+      <div><label>Subscriptions <b>€154</b></label><span><i style="width:18%"></i></span></div>
+    </div>
+    <div class="callout">Largest category: <strong>Housing</strong> · 34.8% of expenses</div>
+  </article>
+</section>
+
+<section class="grid three">
+ <article class="panel">
+  <div class="panel-head"><div><h2>Expense intelligence</h2><p>Current implementation: rule-based</p></div></div>
+  <div class="classify"><div><span class="pill necessary">Necessary</span><strong>54%</strong></div><div><span class="pill controllable">Controllable</span><strong>31%</strong></div><div><span class="pill unnecessary">Unnecessary</span><strong>15%</strong></div></div>
+  <p class="muted">Rules are separated from the analytics layer so a future ML classifier can be introduced without redesigning the application.</p>
+ </article>
+ <article class="panel">
+  <div class="panel-head"><div><h2>Savings goal</h2><p>Planning from historical spending</p></div></div>
+  <div class="goal"><div class="goal-ring"><strong>62%</strong><span>€1,860 / €3,000</span></div><div><strong>Emergency fund</strong><p>Estimated monthly saving: €310</p><button id="simulate">Simulate plan</button></div></div>
+  <div id="simulation" class="simulation" hidden>At €310/month, the target is approximately <strong>4 months</strong> away.</div>
+ </article>
+ <article class="panel">
+  <div class="panel-head"><div><h2>Alerts</h2><p>Threshold-based monitoring</p></div><span class="badge">3</span></div>
+  <ul class="alerts"><li><span>Food</span><strong>82% of threshold</strong></li><li><span>Shopping</span><strong>Threshold exceeded</strong></li><li><span>Daily spike</span><strong>€96 on Saturday</strong></li></ul>
+ </article>
+</section>
+
+<section class="panel transactions">
+ <div class="panel-head"><div><h2>Recent transactions</h2><p>Representative records for the static demo</p></div><input id="search" placeholder="Filter transactions…"></div>
+ <table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Amount</th></tr></thead>
+ <tbody id="rows">
+ <tr><td>08 Oct</td><td>Supermarket</td><td>Food</td><td><span class="pill controllable">Expense</span></td><td>−€48.20</td></tr>
+ <tr><td>07 Oct</td><td>Salary</td><td>Income</td><td><span class="pill income">Income</span></td><td>+€1,420.00</td></tr>
+ <tr><td>06 Oct</td><td>Rent</td><td>Housing</td><td><span class="pill necessary">Expense</span></td><td>−€640.00</td></tr>
+ <tr><td>05 Oct</td><td>Train pass</td><td>Transport</td><td><span class="pill necessary">Expense</span></td><td>−€49.00</td></tr>
+ <tr><td>03 Oct</td><td>Streaming</td><td>Subscriptions</td><td><span class="pill unnecessary">Expense</span></td><td>−€12.99</td></tr>
+ </tbody></table>
+</section>
+
+<section class="architecture">
+ <div><p class="eyebrow">ENGINEERING</p><h2>From raw transaction to decision support</h2><p>Layered architecture keeps ingestion, validation, persistence, business rules and analytics separate.</p></div>
+ <div class="flow"><span>CSV / User input</span><b>→</b><span>FastAPI</span><b>→</b><span>Business services</span><b>→</b><span>PostgreSQL</span><b>→</b><span>Analytics API</span><b>→</b><span>Next.js</span></div>
+</section>
+<footer>Spensense AI · Built by Sahil Dubey · Portfolio demonstration</footer>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
