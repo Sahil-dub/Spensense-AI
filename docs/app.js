@@ -1,0 +1,3 @@
+document.getElementById("simulate").addEventListener("click",()=>{const el=document.getElementById("simulation");el.hidden=!el.hidden});
+document.getElementById("range").addEventListener("change",e=>{document.querySelector(".insight").textContent=e.target.value==="Last 90 days"?"↗ Longer-term trend":"↗ Savings improving"});
+document.getElementById("search").addEventListener("input",e=>{const q=e.target.value.toLowerCase();document.querySelectorAll("#rows tr").forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?"":"none")});
